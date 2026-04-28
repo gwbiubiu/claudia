@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+  <title>Claudia</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">◆</span>
+          <span class="logo-text">Claudia</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">⊞</span><span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-view="chat">
+          <span class="nav-icon">◉</span><span>Chat</span>
+        </a>
+        <a class="nav-item" data-view="sessions">
+          <span class="nav-icon">⊙</span><span>Sessions</span>
+        </a>
+        <a class="nav-item" data-view="tools">
+          <span class="nav-icon">⚙</span><span>Tools</span>
+        </a>
+        <a class="nav-item" data-view="files">
+          <span class="nav-icon">◫</span><span>Files</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="refresh-btn" id="refresh-btn">↺ Refresh</button>
+        <div class="version-info" id="version-info">—</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar" id="topbar">
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+        <div class="topbar-right">
+          <span id="loading-indicator" class="loading-indicator hidden">Loading…</span>
+        </div>
+      </header>
+
+      <!-- Dashboard -->
+      <div id="view-dashboard" class="view active">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon purple">⊞</div><div class="stat-info"><div class="stat-value" id="stat-projects">—</div><div class="stat-label">Projects</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue">⊙</div><div class="stat-info"><div class="stat-value" id="stat-sessions">—</div><div class="stat-label">Sessions</div></div></div>
+          <div class="stat-card"><div class="stat-icon orange">⚙</div><div class="stat-info"><div class="stat-value" id="stat-tools">—</div><div class="stat-label">Tool Calls</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">◫</div><div class="stat-info"><div class="stat-value" id="stat-files">—</div><div class="stat-label">Files Modified</div></div></div>
+        </div>
+        <div class="panels-row">
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Recent Sessions</span></div>
+            <div class="panel-body" id="recent-sessions-list"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Top Tools</span></div>
+            <div class="panel-body" id="top-tools-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div id="view-chat" class="view chat-view-root">
+        <div class="chat-layout">
+          <div class="chat-sidebar-panel">
+            <div class="chat-sidebar-header">
+              <span class="panel-title">Sessions</span>
+            </div>
+            <div class="chat-project-list" id="chat-project-list"></div>
+          </div>
+          <div class="chat-main-panel">
+            <div class="chat-header" id="chat-header">
+              <span class="chat-header-label">No session selected</span>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+              <div class="empty-state">
+                <p>Select a session or start a new chat</p>
+                <p class="hint">Choose from the left panel</p>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <textarea
+                id="chat-input"
+                class="chat-input"
+                placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+                rows="1"
+              ></textarea>
+              <button id="chat-send-btn" class="chat-send-btn" disabled>Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions -->
+      <div id="view-sessions" class="view">
+        <div class="two-col">
+          <div class="col-left panel">
+            <div class="panel-header"><span class="panel-title">Projects</span></div>
+            <div class="panel-body" id="project-list"></div>
+          </div>
+          <div class="col-right panel">
+            <div class="panel-header"><span class="panel-title" id="sessions-panel-title">Select a project</span></div>
+            <div class="panel-body" id="session-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div id="view-tools" class="view">
+        <div class="panel full-height">
+          <div class="panel-header">
+            <span class="panel-title">Tool Calls</span>
+            <div class="filter-row">
+              <input type="text" id="tool-filter" class="filter-input" placeholder="Filter by tool or input…" />
+            </div>
+          </div>
+          <div class="panel-body" id="tools-list"></div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div id="view-files" class="view">
+        <div class="panel full-height">
+          <div class="panel-header"><span class="panel-title">Modified Files</span></div>
+          <div class="panel-body" id="files-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="../../dist/renderer/app.js"></script>
+</body>
+</html>

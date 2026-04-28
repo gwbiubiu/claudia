@@ -1,0 +1,26 @@
+{
+  "name": "claudia",
+  "version": "1.0.0",
+  "description": "Claudia — Claude Code session explorer and chat client",
+  "productName": "Claudia",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build:main": "node_modules/.bin/tsc -p tsconfig.main.json",
+    "build:renderer": "node_modules/.bin/tsc -p tsconfig.renderer.json",
+    "build:preload": "node_modules/.bin/tsc -p tsconfig.preload.json",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "start": "npm run build && node_modules/.bin/electron .",
+    "dev": "node_modules/.bin/concurrently \"node_modules/.bin/tsc -p tsconfig.main.json --watch\" \"node_modules/.bin/tsc -p tsconfig.preload.json --watch\" \"node_modules/.bin/tsc -p tsconfig.renderer.json --watch\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "concurrently": "^9.1.2",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
