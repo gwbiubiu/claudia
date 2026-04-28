@@ -10,11 +10,36 @@
     "build:preload": "node_modules/.bin/tsc -p tsconfig.preload.json",
     "build": "npm run build:main && npm run build:preload && npm run build:renderer",
     "start": "npm run build && node_modules/.bin/electron .",
-    "dev": "node_modules/.bin/concurrently \"node_modules/.bin/tsc -p tsconfig.main.json --watch\" \"node_modules/.bin/tsc -p tsconfig.preload.json --watch\" \"node_modules/.bin/tsc -p tsconfig.renderer.json --watch\""
+    "dev": "node_modules/.bin/concurrently \"node_modules/.bin/tsc -p tsconfig.main.json --watch\" \"node_modules/.bin/tsc -p tsconfig.preload.json --watch\" \"node_modules/.bin/tsc -p tsconfig.renderer.json --watch\"",
+    "dist:mac": "npm run build && node_modules/.bin/electron-builder --mac --publish never"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "gwbiubiu",
+  "license": "MIT",
+  "build": {
+    "appId": "io.github.gwbiubiu.claudia",
+    "productName": "Claudia",
+    "files": [
+      "dist/**/*",
+      "src/renderer/index.html",
+      "src/renderer/styles.css"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ]
+    },
+    "dmg": {
+      "title": "Claudia",
+      "background": null
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "gwbiubiu",
+      "repo": "claudia"
+    }
+  }
   "devDependencies": {
     "@types/node": "^25.6.0",
     "concurrently": "^9.1.2",

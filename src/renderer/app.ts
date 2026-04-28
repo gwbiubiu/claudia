@@ -881,9 +881,17 @@ async function init(): Promise<void> {
 
   // Refresh button
   el('refresh-btn').addEventListener('click', async () => {
-    await loadData();
-    const activeView = document.querySelector<HTMLElement>('.view.active')?.id?.replace('view-', '') ?? 'dashboard';
-    switchView(activeView);
+    const btn = el<HTMLButtonElement>('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = 'Refreshing…';
+    try {
+      await loadData();
+      const activeView = document.querySelector<HTMLElement>('.view.active')?.id?.replace('view-', '') ?? 'dashboard';
+      switchView(activeView);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↺ Refresh';
+    }
   });
 
   // Tool filter
