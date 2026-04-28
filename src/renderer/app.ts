@@ -746,6 +746,11 @@ function initChatListeners(): void {
     if (requestId !== chat.activeRequestId) return;
     const event = ev as Record<string, unknown>;
 
+    // Capture session_id from the system init event (new sessions)
+    if (event['type'] === 'system' && event['session_id']) {
+      chat.sessionId = String(event['session_id']);
+    }
+
     if (event['type'] === 'assistant') {
       const msg = event['message'] as Record<string, unknown>;
       const content = (msg?.['content'] ?? []) as Record<string, unknown>[];
@@ -773,12 +778,26 @@ function initChatListeners(): void {
     chat.streaming = false;
     chat.activeRequestId = null;
 
-    // Reload messages from disk to get the authoritative version
-    if (chat.projectId && chat.sessionId) {
-      const msgs = (await window.electronAPI?.getChatMessages(chat.projectId, chat.sessionId)) ?? [];
-      chat.messages = msgs as ChatEntry[];
+    // Reload data so we can find the project for a newly-created session
+    await loadData();
+
+    if (chat.sessionId) {
+      // If we still don't have a projectId, find it by matching session id
+      if (!chat.projectId) {
+        for (const p of projects) {
+          if (p.sessions.some((s) => s.id === chat.sessionId)) {
+            chat.projectId = p.id;
+            break;
+          }
+        }
+      }
+      if (chat.projectId) {
+        const msgs = (await window.electronAPI?.getChatMessages(chat.projectId, chat.sessionId)) ?? [];
+        chat.messages = msgs as ChatEntry[];
+      }
     }
 
+    renderChatProjectList();
     renderChatMessages();
     el<HTMLButtonElement>('chat-send-btn').disabled = false;
     el<HTMLButtonElement>('chat-send-btn').textContent = 'Send';
