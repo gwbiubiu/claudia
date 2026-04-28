@@ -31,5 +31,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('clear-session-chat', projectId, sessionId),
   copyToClipboard: (text: string): Promise<void> =>
     ipcRenderer.invoke('copy-to-clipboard', text),
+  installCLI: (): Promise<void> =>
+    ipcRenderer.invoke('install-cli'),
+  onOpenNewChat: (cb: (cwd: string) => void): void => {
+    ipcRenderer.on('open-new-chat', (_e, cwd) => cb(cwd as string));
+  },
   platform: process.platform,
 });

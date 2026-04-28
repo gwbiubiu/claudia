@@ -1,0 +1,3 @@
+#!/bin/sh
+DIR=$(cd "${1:-.}" && pwd)
+open "claudia://chat?cwd=$DIR"

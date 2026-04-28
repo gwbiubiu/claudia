@@ -28,6 +28,9 @@
       "category": "public.app-category.developer-tools",
       "target": [
         { "target": "dmg", "arch": ["arm64", "x64"] }
+      ],
+      "protocols": [
+        { "name": "Claudia", "schemes": ["claudia"] }
       ]
     },
     "dmg": {

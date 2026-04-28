@@ -112,6 +112,12 @@ export function registerIPC(): void {
     clipboard.writeText(text);
   });
 
+  ipcMain.handle('install-cli', () => {
+    const target = '/usr/local/bin/claudia';
+    const script = `#!/bin/sh\nDIR=$(cd "\${1:-.}" && pwd)\nopen "claudia://chat?cwd=$DIR"\n`;
+    fs.writeFileSync(target, script, { encoding: 'utf-8', mode: 0o755 });
+  });
+
   // Legacy resume-in-terminal (kept for reference)
   ipcMain.handle('resume-session', async (_e, sessionId: string, cwd: string) => {
     const workDir = (cwd && fs.existsSync(cwd)) ? cwd : os.homedir();

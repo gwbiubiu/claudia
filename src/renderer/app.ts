@@ -64,6 +64,8 @@ interface ElectronAPI {
   clearSessionChat: (projectId: string, sessionId: string) => Promise<void>;
   resumeSession: (sessionId: string, cwd: string) => Promise<boolean>;
   copyToClipboard: (text: string) => Promise<void>;
+  installCLI: () => Promise<void>;
+  onOpenNewChat: (cb: (cwd: string) => void) => void;
   platform: string;
 }
 
@@ -578,7 +580,7 @@ async function openChatSession(projectId: string, sessionId: string, cwd: string
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
-function startNewChat(projectId: string, cwd: string): void {
+function startNewChat(projectId: string | null, cwd: string): void {
   if (chat.streaming) cancelCurrentChat();
   chat.projectId = projectId;
   chat.sessionId = null;
@@ -592,8 +594,15 @@ function startNewChat(projectId: string, cwd: string): void {
 
 function updateChatHeader(): void {
   const header = el('chat-header');
-  if (!chat.projectId) {
+  if (!chat.projectId && !chat.cwd) {
     header.innerHTML = '<span class="chat-header-label">No session selected</span>';
+    return;
+  }
+  if (!chat.projectId && chat.cwd) {
+    header.innerHTML = `
+      <span class="chat-header-label">New Chat</span>
+      <span class="chat-header-meta">${esc(chat.cwd)}</span>
+    `;
     return;
   }
   const project = projects.find((p) => p.id === chat.projectId);
@@ -906,6 +915,34 @@ async function init(): Promise<void> {
 
   // Init chat view
   initChatView();
+
+  // Handle claudia:// URL open-new-chat from CLI
+  window.electronAPI?.onOpenNewChat((cwd) => {
+    startNewChat(null, cwd);
+    switchView('chat');
+    el<HTMLTextAreaElement>('chat-input').focus();
+  });
+
+  // Install CLI button
+  el('install-cli-btn').addEventListener('click', async () => {
+    const btn = el<HTMLButtonElement>('install-cli-btn');
+    btn.disabled = true;
+    btn.textContent = 'Installing…';
+    try {
+      await window.electronAPI?.installCLI();
+      btn.textContent = '✓ Installed';
+      setTimeout(() => {
+        btn.textContent = 'Install CLI';
+        btn.disabled = false;
+      }, 2000);
+    } catch {
+      btn.textContent = 'Failed';
+      setTimeout(() => {
+        btn.textContent = 'Install CLI';
+        btn.disabled = false;
+      }, 2000);
+    }
+  });
 
   // Load and render
   await loadData();
