@@ -64,6 +64,7 @@ interface ElectronAPI {
   clearSessionChat: (projectId: string, sessionId: string) => Promise<void>;
   resumeSession: (sessionId: string, cwd: string) => Promise<boolean>;
   copyToClipboard: (text: string) => Promise<void>;
+  checkCLI: () => Promise<boolean>;
   installCLI: () => Promise<void>;
   onOpenNewChat: (cb: (cwd: string) => void) => void;
   platform: string;
@@ -924,25 +925,27 @@ async function init(): Promise<void> {
   });
 
   // Install CLI button
-  el('install-cli-btn').addEventListener('click', async () => {
-    const btn = el<HTMLButtonElement>('install-cli-btn');
-    btn.disabled = true;
-    btn.textContent = 'Installing…';
-    try {
-      await window.electronAPI?.installCLI();
-      btn.textContent = '✓ Installed';
-      setTimeout(() => {
-        btn.textContent = 'Install CLI';
-        btn.disabled = false;
-      }, 2000);
-    } catch {
-      btn.textContent = 'Failed';
-      setTimeout(() => {
-        btn.textContent = 'Install CLI';
-        btn.disabled = false;
-      }, 2000);
-    }
-  });
+  const cliBtn = el<HTMLButtonElement>('install-cli-btn');
+  const hideCLIBtn = () => { cliBtn.style.display = 'none'; };
+
+  if (await window.electronAPI?.checkCLI()) {
+    hideCLIBtn();
+  } else {
+    cliBtn.addEventListener('click', async () => {
+      cliBtn.disabled = true;
+      cliBtn.textContent = 'Installing…';
+      try {
+        await window.electronAPI?.installCLI();
+        hideCLIBtn();
+      } catch {
+        cliBtn.textContent = 'Failed';
+        setTimeout(() => {
+          cliBtn.textContent = 'Install CLI';
+          cliBtn.disabled = false;
+        }, 2000);
+      }
+    });
+  }
 
   // Load and render
   await loadData();

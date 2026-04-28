@@ -112,10 +112,29 @@ export function registerIPC(): void {
     clipboard.writeText(text);
   });
 
+  ipcMain.handle('check-cli', () => fs.existsSync('/usr/local/bin/claudia'));
+
   ipcMain.handle('install-cli', () => {
     const target = '/usr/local/bin/claudia';
     const script = `#!/bin/sh\nDIR=$(cd "\${1:-.}" && pwd)\nopen "claudia://chat?cwd=$DIR"\n`;
-    fs.writeFileSync(target, script, { encoding: 'utf-8', mode: 0o755 });
+
+    // Try direct write first (works if /usr/local/bin is user-writable, e.g. Homebrew setup)
+    try {
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, script, { encoding: 'utf-8', mode: 0o755 });
+      return;
+    } catch { /* need elevated privileges */ }
+
+    // Fall back to osascript admin dialog
+    const tmp = path.join(os.tmpdir(), `claudia-cli-${Date.now()}.sh`);
+    fs.writeFileSync(tmp, script, { encoding: 'utf-8', mode: 0o755 });
+    try {
+      execSync(
+        `osascript -e 'do shell script "mkdir -p /usr/local/bin && cp \\"${tmp}\\" \\"${target}\\" && chmod 755 \\"${target}\\"" with administrator privileges'`
+      );
+    } finally {
+      try { fs.unlinkSync(tmp); } catch { /* ignore */ }
+    }
   });
 
   // Legacy resume-in-terminal (kept for reference)
