@@ -839,3 +839,9 @@ body {
 .yolo-toggle:has(input:checked) .yolo-text {
   color: var(--red);
 }
+
+.chat-stop-btn {
+  background: var(--red) !important;
+  opacity: 1 !important;
+}
+.chat-stop-btn:hover { opacity: 0.85 !important; }

@@ -887,8 +887,10 @@ function initChatListeners(): void {
 
     renderChatProjectList();
     renderChatMessages();
-    el<HTMLButtonElement>('chat-send-btn').disabled = false;
-    el<HTMLButtonElement>('chat-send-btn').textContent = 'Send';
+    const btn = el<HTMLButtonElement>('chat-send-btn');
+    btn.textContent = 'Send';
+    btn.className = 'chat-send-btn';
+    btn.disabled = false;
   });
 }
 
@@ -897,6 +899,10 @@ function cancelCurrentChat(): void {
     window.electronAPI?.cancelChatMessage(chat.activeRequestId);
     chat.streaming = false;
     chat.activeRequestId = null;
+    const btn = el<HTMLButtonElement>('chat-send-btn');
+    btn.textContent = 'Send';
+    btn.className = 'chat-send-btn';
+    btn.disabled = false;
   }
 }
 
@@ -916,8 +922,11 @@ async function sendChatMessage(): Promise<void> {
   chat.activeRequestId = requestId;
 
   renderChatMessages();
-  el<HTMLButtonElement>('chat-send-btn').disabled = true;
-  el<HTMLButtonElement>('chat-send-btn').textContent = 'Sending…';
+
+  const sendBtn = el<HTMLButtonElement>('chat-send-btn');
+  sendBtn.textContent = '■ Stop';
+  sendBtn.className = 'chat-send-btn chat-stop-btn';
+  sendBtn.disabled = false;
 
   initChatListeners();
 
@@ -949,7 +958,10 @@ function initChatView(): void {
     }
   });
 
-  sendBtn.addEventListener('click', () => { void sendChatMessage(); });
+  sendBtn.addEventListener('click', () => {
+    if (chat.streaming) cancelCurrentChat();
+    else void sendChatMessage();
+  });
 }
 
 // ── Navigate to chat with a specific session ───────────────────────────────
