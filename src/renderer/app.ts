@@ -138,6 +138,87 @@ function el<T extends HTMLElement>(id: string): T {
   return document.getElementById(id) as T;
 }
 
+// ── Markdown renderer ─────────────────────────────────────────────────────
+
+function inlineMd(text: string): string {
+  let s = esc(text);
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+  return s;
+}
+
+function renderMarkdown(raw: string): string {
+  const lines = raw.split('\n');
+  const out: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    const fence = line.match(/^```(\w*)/);
+    if (fence) {
+      const lang = fence[1] ?? '';
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++; // skip closing ```
+      const code = codeLines.join('\n');
+      const langLabel = lang ? `<span class="code-lang">${esc(lang)}</span>` : '';
+      const copyBtn = `<button class="code-copy-btn" data-code="${esc(code)}">Copy</button>`;
+      out.push(`<div class="code-block-wrapper">${langLabel}${copyBtn}<pre class="code-block"><code>${esc(code)}</code></pre></div>`);
+      continue;
+    }
+
+    // Headers
+    const h3 = line.match(/^### (.+)/);
+    if (h3) { out.push(`<h3 class="md-h">${inlineMd(h3[1])}</h3>`); i++; continue; }
+    const h2 = line.match(/^## (.+)/);
+    if (h2) { out.push(`<h2 class="md-h">${inlineMd(h2[1])}</h2>`); i++; continue; }
+    const h1 = line.match(/^# (.+)/);
+    if (h1) { out.push(`<h1 class="md-h">${inlineMd(h1[1])}</h1>`); i++; continue; }
+
+    // Horizontal rule
+    if (/^---+$|^\*\*\*+$/.test(line.trim())) { out.push('<hr class="md-hr">'); i++; continue; }
+
+    // Unordered list
+    if (/^[-*] /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^[-*] /.test(lines[i])) {
+        items.push(`<li>${inlineMd(lines[i].replace(/^[-*] /, ''))}</li>`);
+        i++;
+      }
+      out.push(`<ul class="md-list">${items.join('')}</ul>`);
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\. /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        items.push(`<li>${inlineMd(lines[i].replace(/^\d+\. /, ''))}</li>`);
+        i++;
+      }
+      out.push(`<ol class="md-list">${items.join('')}</ol>`);
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') { out.push('<div class="md-gap"></div>'); i++; continue; }
+
+    // Regular paragraph
+    out.push(`<p class="md-p">${inlineMd(line)}</p>`);
+    i++;
+  }
+
+  return out.join('');
+}
+
 // ── Data loading ───────────────────────────────────────────────────────────
 
 async function loadData(): Promise<void> {
@@ -663,7 +744,7 @@ function toolCardHtml(block: ChatBlock): string {
 function msgRowHtml(entry: ChatEntry, idx: number): string {
   const roleLabel = entry.role === 'user' ? 'You' : 'Claude';
   const blockHtml = entry.blocks.map((b) => {
-    if (b.type === 'text') return `<div class="msg-text">${esc(b.text ?? '')}</div>`;
+    if (b.type === 'text') return `<div class="msg-text md-body">${renderMarkdown(b.text ?? '')}</div>`;
     if (b.type === 'tool_use') return toolCardHtml(b);
     if (b.type === 'thinking') {
       return `<div class="thinking-block" data-thinking-idx="${idx}">
@@ -706,6 +787,16 @@ function renderChatMessages(): void {
     container.appendChild(streamEl);
   }
 
+  // Wire code copy buttons
+  container.querySelectorAll<HTMLButtonElement>('.code-copy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset['code'] ?? '';
+      window.electronAPI?.copyToClipboard(code);
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  });
+
   // Wire tool card toggles
   container.querySelectorAll<HTMLElement>('.tool-card-header').forEach((h) => {
     h.addEventListener('click', () => {
@@ -726,17 +817,14 @@ function renderChatMessages(): void {
   container.scrollTop = container.scrollHeight;
 }
 
+let streamingBuffer = '';
+
 function appendStreamingText(text: string): void {
+  streamingBuffer += text;
   const streamEl = document.getElementById('streaming-msg');
   if (!streamEl) return;
-  let textDiv = streamEl.querySelector<HTMLElement>('.streaming-text');
-  if (!textDiv) {
-    streamEl.innerHTML = '<div class="msg-role">Claude</div><div class="msg-text streaming-text"></div>';
-    textDiv = streamEl.querySelector<HTMLElement>('.streaming-text');
-  }
-  if (textDiv) textDiv.textContent = (textDiv.textContent ?? '') + text;
-  const container = el('chat-messages');
-  container.scrollTop = container.scrollHeight;
+  streamEl.innerHTML = `<div class="msg-role">Claude</div><div class="msg-text md-body">${renderMarkdown(streamingBuffer)}</div>`;
+  el('chat-messages').scrollTop = el('chat-messages').scrollHeight;
 }
 
 function initChatListeners(): void {
@@ -823,6 +911,7 @@ async function sendChatMessage(): Promise<void> {
   input.value = '';
   input.style.height = 'auto';
 
+  streamingBuffer = '';
   const requestId = `req-${Date.now()}`;
   chat.activeRequestId = requestId;
 
