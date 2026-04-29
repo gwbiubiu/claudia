@@ -903,6 +903,7 @@ function cancelCurrentChat(): void {
     btn.textContent = 'Send';
     btn.className = 'chat-send-btn';
     btn.disabled = false;
+    renderChatMessages();
   }
 }
 
