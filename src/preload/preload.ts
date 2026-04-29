@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     sessionId: string | null;
     message: string;
     cwd: string;
+    yolo?: boolean;
   }): void => ipcRenderer.send('chat:send', args),
   cancelChatMessage: (requestId: string): void => ipcRenderer.send('chat:cancel', requestId),
   onChatEvent: (cb: ChatEventCb): void => {

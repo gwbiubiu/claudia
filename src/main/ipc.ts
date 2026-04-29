@@ -51,15 +51,17 @@ export function registerIPC(): void {
   });
 
   // Streaming chat send (uses ipcMain.on so we can push events back)
-  ipcMain.on('chat:send', (event, { requestId, sessionId, message, cwd }: {
+  ipcMain.on('chat:send', (event, { requestId, sessionId, message, cwd, yolo }: {
     requestId: string;
     sessionId: string | null;
     message: string;
     cwd: string;
+    yolo?: boolean;
   }) => {
     const claudeBin = findClaudeBin();
     const args = ['-p', message, '--output-format', 'stream-json', '--verbose'];
     if (sessionId) args.push('--resume', sessionId);
+    if (yolo) args.push('--dangerously-skip-permissions');
 
     const proc = spawn(claudeBin, args, {
       cwd: (cwd && fs.existsSync(cwd)) ? cwd : os.homedir(),

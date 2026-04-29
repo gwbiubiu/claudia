@@ -88,13 +88,22 @@
               </div>
             </div>
             <div class="chat-input-bar">
-              <textarea
-                id="chat-input"
-                class="chat-input"
-                placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
-                rows="1"
-              ></textarea>
-              <button id="chat-send-btn" class="chat-send-btn" disabled>Send</button>
+              <div class="chat-input-row">
+                <textarea
+                  id="chat-input"
+                  class="chat-input"
+                  placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+                  rows="1"
+                ></textarea>
+                <button id="chat-send-btn" class="chat-send-btn" disabled>Send</button>
+              </div>
+              <div class="chat-input-options">
+                <label class="yolo-toggle" id="yolo-label" title="--dangerously-skip-permissions: auto-accept all Claude requests">
+                  <input type="checkbox" id="yolo-checkbox" />
+                  <span class="yolo-slider"></span>
+                  <span class="yolo-text">YOLO</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>

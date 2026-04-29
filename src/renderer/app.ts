@@ -55,7 +55,7 @@ interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
   getChatMessages: (projectId: string, sessionId: string) => Promise<ChatEntry[]>;
-  sendChatMessage: (args: { requestId: string; sessionId: string | null; message: string; cwd: string }) => void;
+  sendChatMessage: (args: { requestId: string; sessionId: string | null; message: string; cwd: string; yolo?: boolean }) => void;
   cancelChatMessage: (requestId: string) => void;
   onChatEvent: (cb: (data: { requestId: string; ev: unknown }) => void) => void;
   onChatDone: (cb: (data: { requestId: string; code: number | null }) => void) => void;
@@ -921,11 +921,13 @@ async function sendChatMessage(): Promise<void> {
 
   initChatListeners();
 
+  const yolo = el<HTMLInputElement>('yolo-checkbox').checked;
   window.electronAPI?.sendChatMessage({
     requestId,
     sessionId: chat.sessionId,
     message,
     cwd: chat.cwd,
+    yolo,
   });
 }
 
